@@ -26,15 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (started) return;
 
     const introText = document.createElement("a-text");
-    introText.setAttribute("value",
-      "Fragments is an Augmented Reality experience that retraces the history\nof the Camera Bioscoop building.\n\nThe work is composed of four chronological interactive experiences,\nguiding visitors through different moments of its past.\n\nStep by step, the audience is accompanied through the entrance of the\nCamera Bioscoop, where history and architecture come alive in a layered,\nimmersive narrative."
+    introText.setAttribute("value", 
+      "Fragments is an Augmented Reality experience\nthat retraces the history of the Camera Bioscoop building.\nThe work is composed of four chronological interactive experiences,\nguiding visitors through different moments of its past.\nStep by step, the audience is accompanied through the entrance of the Camera Bioscoop,\nwhere history and architecture come alive in a layered, immersive narrative."
     );
     introText.setAttribute("align", "center");
     introText.setAttribute("color", "#000000");
-    introText.setAttribute("font", "roboto");
     introText.setAttribute("position", "0 0.25 0");
-    introText.setAttribute("scale", "0.18 0.18 0.18");
-    introText.setAttribute("wrap-count", "35");
+    introText.setAttribute("scale", "0.15 0.15 0.15");
+    introText.setAttribute("wrap-count", "25");
     introText.setAttribute("id", "introText");
     introContainer.appendChild(introText);
 
@@ -44,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
       startText.setAttribute("align", "center");
       startText.setAttribute("color", "#FFD700");
       startText.setAttribute("position", "0 -0.3 0");
-      startText.setAttribute("scale", "0.18 0.18 0.18");
+      startText.setAttribute("scale", "0.15 0.15 0.15");
       startText.setAttribute("wrap-count", "20");
       startText.setAttribute("id", "startText");
       introContainer.appendChild(startText);
@@ -54,9 +53,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Global click handler ---
   window.addEventListener("click", () => {
-    const startText = document.getElementById("startText");
     if (!started && canTap) {
       const introText = document.getElementById("introText");
+      const startText = document.getElementById("startText");
       if (introText) introText.setAttribute("visible", "false");
       if (startText) startText.setAttribute("visible", "false");
 
@@ -67,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Show models one by one (pop) ---
+  // --- Show models one by one ---
   function showAllModelsSequentially() {
     if (currentIndex >= models.length) {
       allModelsDisplayed = true;
@@ -103,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
         dur: 500,
         easing: "easeOutElastic"
       });
-
       piece.setAttribute("visible", "true");
     });
 
@@ -115,60 +113,164 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function clearOldTexts() {
     const oldTexts = introContainer.querySelectorAll("a-text");
-    oldTexts.forEach((t) => {
-      if (t.id !== "tapText") t.remove();
-    });
+    oldTexts.forEach(t => { if (t.id !== "tapText") t.remove(); });
   }
 
-  // --- Reset models ---
   function resetAllModels(activeIndices = [], callback) {
     const dur = 800;
+    frameEntities.forEach((ent, i) => { if (!activeIndices.includes(i)) ent.setAttribute("visible", "false"); });
 
-    frameEntities.forEach((ent, i) => {
-      if (!activeIndices.includes(i)) ent.setAttribute("visible", "false");
-    });
-
-    activeIndices.forEach((i) => {
+    activeIndices.forEach(i => {
       const ent = frameEntities[i];
       const orig = originalTransforms[i];
       if (!ent || !orig) return;
-
-      ent.setAttribute("animation__backpos", {
-        property: "position",
-        to: `${orig.position.x} ${orig.position.y} ${orig.position.z}`,
-        dur: dur,
-        easing: "easeInOutQuad"
-      });
-      ent.setAttribute("animation__backscale", {
-        property: "scale",
-        to: `${orig.scale.x} ${orig.scale.y} ${orig.scale.z}`,
-        dur: dur,
-        easing: "easeInOutQuad"
-      });
+      ent.setAttribute("animation__backpos", { property: "position", to: `${orig.position.x} ${orig.position.y} ${orig.position.z}`, dur: dur, easing: "easeInOutQuad" });
+      ent.setAttribute("animation__backscale", { property: "scale", to: `${orig.scale.x} ${orig.scale.y} ${orig.scale.z}`, dur: dur, easing: "easeInOutQuad" });
     });
 
     setTimeout(() => {
       frameEntities.forEach((ent, i) => {
         const orig = originalTransforms[i];
-        if (orig) {
-          ent.setAttribute("position", `${orig.position.x} ${orig.position.y} ${orig.position.z}`);
-          ent.setAttribute("scale", `${orig.scale.x} ${orig.scale.y} ${orig.scale.z}`);
-        }
+        if (orig) { ent.setAttribute("position", `${orig.position.x} ${orig.position.y} ${orig.position.z}`); ent.setAttribute("scale", `${orig.scale.x} ${orig.scale.y} ${orig.scale.z}`); }
         ent.setAttribute("visible", "true");
       });
-
-      camera.setAttribute("animation__camreset", {
-        property: "position",
-        to: "0 0 0",
-        dur: dur,
-        easing: "easeInOutQuad"
-      });
-
+      camera.setAttribute("animation__camreset", { property: "position", to: "0 0 0", dur: dur, easing: "easeInOutQuad" });
       const tapText = document.getElementById("tapText");
       if (tapText) tapText.setAttribute("visible", "true");
-
       if (typeof callback === "function") callback();
     }, dur + 50);
+  }
+
+  // --- Sequences ---
+  function handleSequences() {
+    const tapText = document.getElementById("tapText");
+    if (tapText) tapText.setAttribute("visible", "false");
+    clearOldTexts();
+
+    // --- SEQUENZA 1 ---
+    if (sequenceStep === 0) {
+      frameEntities.forEach((ent, i) => { if (i > 1) ent.setAttribute("visible", "false"); });
+      frameEntities[0].setAttribute("animation__pos_zoom", { property: "position", to: "-0.35 0 0.1", dur: 800, easing: "easeInOutQuad" });
+      frameEntities[1].setAttribute("animation__pos_zoom", { property: "position", to: "0.05 0.12 0.4", dur: 800, easing: "easeInOutQuad" });
+      frameEntities[0].setAttribute("animation__scale_zoom", { property: "scale", to: "1.2 1.2 1.2", dur: 800, easing: "easeInOutQuad" });
+      frameEntities[1].setAttribute("animation__scale_zoom", { property: "scale", to: "2.1 2.1 2.1", dur: 800, easing: "easeInOutQuad" });
+      camera.setAttribute("animation__cam_zoom", { property: "position", to: "0 0 0.5", dur: 800, easing: "easeInOutQuad" });
+
+      const text1952 = document.createElement("a-text");
+      text1952.setAttribute("value", "1952");
+      text1952.setAttribute("align", "center");
+      text1952.setAttribute("color", "#000000");
+      text1952.setAttribute("font", "roboto");
+      text1952.setAttribute("position", { x:0, y:0.35, z:0.5 });
+      text1952.setAttribute("scale", "0.45 0.45 0.45");
+      text1952.setAttribute("anchor", "center");
+      text1952.setAttribute("opacity", "0");
+      text1952.setAttribute("animation__fadein", { property:"opacity", from:0, to:1, dur:800, easing:"easeInQuad", delay:200 });
+      introContainer.appendChild(text1952);
+
+      const text1952Detail = document.createElement("a-text");
+      text1952Detail.setAttribute("value", "The cinema operator Alfred Friedrich Wolff made a proposal to build a camera theater,\na hotel, and a café-restaurant in Hereplein.");
+      text1952Detail.setAttribute("align", "center");
+      text1952Detail.setAttribute("color", "#000000");
+      text1952Detail.setAttribute("font", "roboto");
+      text1952Detail.setAttribute("position", { x:0, y:0.15, z:0.5 });
+      text1952Detail.setAttribute("scale", "0.25 0.25 0.25");
+      text1952Detail.setAttribute("wrap-count", "30");
+      text1952Detail.setAttribute("opacity","0");
+      text1952Detail.setAttribute("animation__fadein", { property:"opacity", from:0, to:1, dur:800, easing:"easeInQuad", delay:1200 });
+      introContainer.appendChild(text1952Detail);
+
+      sequenceStep = 1;
+
+    } else if (sequenceStep === 1) {
+      const butText = document.createElement("a-text");
+      butText.setAttribute("value","BUT");
+      butText.setAttribute("align","center");
+      butText.setAttribute("color","#000000");
+      butText.setAttribute("font","roboto");
+      butText.setAttribute("position",{x:0,y:0.35,z:0.5});
+      butText.setAttribute("scale","0.45 0.45 0.45");
+      butText.setAttribute("opacity","0");
+      butText.setAttribute("animation__fadein",{property:"opacity",from:0,to:1,dur:800,easing:"easeInQuad",delay:200});
+      introContainer.appendChild(butText);
+
+      const butDetail = document.createElement("a-text");
+      butDetail.setAttribute("value","the municipality refused.");
+      butDetail.setAttribute("align","center");
+      butDetail.setAttribute("color","#000000");
+      butDetail.setAttribute("font","roboto");
+      butDetail.setAttribute("position",{x:0,y:0.15,z:0.5});
+      butDetail.setAttribute("scale","0.25 0.25 0.25");
+      butDetail.setAttribute("wrap-count","30");
+      butDetail.setAttribute("opacity","0");
+      butDetail.setAttribute("animation__fadein",{property:"opacity",from:0,to:1,dur:800,easing:"easeInQuad",delay:1200});
+      introContainer.appendChild(butDetail);
+
+      sequenceStep = 2;
+
+    // --- SEQUENZA 2 ---
+    } else if (sequenceStep === 2) {
+      resetAllModels([0,1], () => {
+        frameEntities.forEach((ent,i)=>{ if(i<2 || i>4) ent.setAttribute("visible","false"); });
+        frameEntities[2].setAttribute("animation__pos_zoom",{property:"position",to:"-0.05 0.2 0.35",dur:800,easing:"easeInOutQuad"});
+        frameEntities[3].setAttribute("animation__pos_zoom",{property:"position",to:"0.05 0.45 0.35",dur:800,easing:"easeInOutQuad"});
+        frameEntities[4].setAttribute("animation__pos_zoom",{property:"position",to:"0.15 0.3 0.35",dur:800,easing:"easeInOutQuad"});
+        [2,3,4].forEach(i=>frameEntities[i].setAttribute("animation__scale_zoom",{property:"scale",to:"1.2 1.2 1.2",dur:800,easing:"easeInOutQuad"}));
+        camera.setAttribute("animation__cam_zoom",{property:"position",to:"0 0 0.6",dur:800,easing:"easeInOutQuad"});
+
+        const text1958 = document.createElement("a-text");
+        text1958.setAttribute("value","1958");
+        text1958.setAttribute("align","center");
+        text1958.setAttribute("color","#000000");
+        text1958.setAttribute("font","roboto");
+        text1958.setAttribute("position",{x:0,y:0.35,z:0.5});
+        text1958.setAttribute("scale","0.45 0.45 0.45");
+        text1958.setAttribute("anchor","center");
+        text1958.setAttribute("opacity","0");
+        text1958.setAttribute("animation__fadein",{property:"opacity",from:0,to:1,dur:800,easing:"easeInQuad",delay:200});
+        introContainer.appendChild(text1958);
+
+        const text1958Detail = document.createElement("a-text");
+        text1958Detail.setAttribute("value","Some buttresses of the Alva castele, built during the Eighty Years' War, were found in the construction pit of the cinema.");
+        text1958Detail.setAttribute("align","center");
+        text1958Detail.setAttribute("color","#000000");
+        text1958Detail.setAttribute("font","roboto");
+        text1958Detail.setAttribute("position",{x:0,y:0.15,z:0.5});
+        text1958Detail.setAttribute("scale","0.25 0.25 0.25");
+        text1958Detail.setAttribute("wrap-count","30");
+        text1958Detail.setAttribute("opacity","0");
+        text1958Detail.setAttribute("animation__fadein",{property:"opacity",from:0,to:1,dur:800,easing:"easeInQuad",delay:1200});
+        introContainer.appendChild(text1958Detail);
+
+        sequenceStep = 3;
+      });
+
+    // --- SEQUENZA 3 ---
+    } else if (sequenceStep === 3) {
+      resetAllModels([2,3,4], () => {
+        frameEntities.forEach((ent,i)=>{ if(i!==5) ent.setAttribute("visible","false"); });
+        frameEntities[5].setAttribute("animation__pos_zoom",{property:"position",to:"0.3 -0.15 0.35",dur:800,easing:"easeInOutQuad"});
+        frameEntities[5].setAttribute("animation__scale_zoom",{property:"scale",to:"1.7 1.7 1.7",dur:800,easing:"easeInOutQuad"});
+        camera.setAttribute("animation__cam_zoom",{property:"position",to:"0 0 0.6",dur:800,easing:"easeInOutQuad"});
+
+        const textRampart = document.createElement("a-text");
+        textRampart.setAttribute("value","At the beginning of the 17th century, a rampart was built, incorporating the famous Herepoort gate.\nThe rampart and gate were demolished in 1875 and 1878, respectively, to allow for the construction of Hereplein square and the canals.");
+        textRampart.setAttribute("align","center");
+        textRampart.setAttribute("color","#000000");
+        textRampart.setAttribute("font","roboto");
+        textRampart.setAttribute("position",{x:0,y:0.25,z:0.5});
+        textRampart.setAttribute("scale","0.25 0.25 0.25");
+        textRampart.setAttribute("wrap-count","30");
+        textRampart.setAttribute("opacity","0");
+        textRampart.setAttribute("animation__fadein",{property:"opacity",from:0,to:1,dur:800,easing:"easeInQuad",delay:200});
+        introContainer.appendChild(textRampart);
+
+        sequenceStep = 4;
+      });
+    } else if(sequenceStep>=4) {
+      // Rimane la parte finale già implementata (showFinalCinema)
+      showFinalCinema();
+    }
   }
 
   // --- Finale con modello cinema ---
@@ -183,7 +285,6 @@ document.addEventListener("DOMContentLoaded", () => {
     cinemaModel.setAttribute("position", { x: 0, y: -0.3, z: 0.5 });
     cinemaModel.setAttribute("scale", { x: 1.5, y: 1.5, z: 1.5 });
     cinemaModel.addEventListener("model-loaded", () => {
-      console.log("✅ Cinema model caricato!");
       cinemaModel.setAttribute("visible", "true");
     });
     modelsContainer.appendChild(cinemaModel);
@@ -215,134 +316,6 @@ document.addEventListener("DOMContentLoaded", () => {
     textRuins.setAttribute("negate", "false");
     textRuins.setAttribute("animation__fadein", { property: "opacity", from: 0, to: 1, dur: 800, easing: "easeInQuad", delay: 1200 });
     introContainer.appendChild(textRuins);
-  }
-
-  // --- Gestione sequenze ---
-  function handleSequences() {
-    const tapText = document.getElementById("tapText");
-    if (tapText) tapText.setAttribute("visible", "false");
-
-    clearOldTexts();
-
-    if (sequenceStep === 0) {
-      frameEntities.forEach((ent,i)=>{ if(i>1) ent.setAttribute("visible","false"); });
-
-      frameEntities[0].setAttribute("animation__pos_zoom", { property: "position", to: "-0.35 0 0.1", dur: 800, easing: "easeInOutQuad" });
-      frameEntities[1].setAttribute("animation__pos_zoom", { property: "position", to: "0.05 0.12 0.4", dur: 800, easing: "easeInOutQuad" });
-
-      frameEntities[0].setAttribute("animation__scale_zoom", { property: "scale", to: "1.2 1.2 1.2", dur: 800, easing: "easeInOutQuad" });
-      frameEntities[1].setAttribute("animation__scale_zoom", { property: "scale", to: "2.1 2.1 2.1", dur: 800, easing: "easeInOutQuad" });
-
-      camera.setAttribute("animation__cam_zoom", { property: "position", to: "0 0 0.5", dur: 800, easing: "easeInOutQuad" });
-
-      const infoText = document.createElement("a-text");
-      infoText.setAttribute("value", "Queste due cornici rappresentano le principali della tua collezione");
-      infoText.setAttribute("align", "center");
-      infoText.setAttribute("color", "#008000");
-      infoText.setAttribute("position", "0 -0.4 0");
-      infoText.setAttribute("scale", "0.2 0.2 0.2");
-      infoText.setAttribute("wrap-count", "30");
-      introContainer.appendChild(infoText);
-
-      sequenceStep = 1;
-
-    } else if (sequenceStep === 1) {
-      const infoText = document.createElement("a-text");
-      infoText.setAttribute("value", "Sono le opere più importanti, da cui parte la storia");
-      infoText.setAttribute("align", "center");
-      infoText.setAttribute("color", "#008000");
-      infoText.setAttribute("position", "0 -0.5 0");
-      infoText.setAttribute("scale", "0.2 0.2 0.2");
-      infoText.setAttribute("wrap-count", "30");
-      introContainer.appendChild(infoText);
-
-      sequenceStep = 2;
-
-    } else if (sequenceStep === 2) {
-      resetAllModels([0,1], () => { sequenceStep = 3; });
-
-    } else if (sequenceStep === 3) {
-      frameEntities.forEach((ent, i) => { if (i<2 || i>4) ent.setAttribute("visible","false"); });
-
-      frameEntities[2].setAttribute("animation__pos_zoom", { property: "position", to: "-0.05 0.2 0.35", dur: 800, easing: "easeInOutQuad" });
-      frameEntities[3].setAttribute("animation__pos_zoom", { property: "position", to: "0.05 0.45 0.35", dur: 800, easing: "easeInOutQuad" });
-      frameEntities[4].setAttribute("animation__pos_zoom", { property: "position", to: "0.15 0.3 0.35", dur: 800, easing: "easeInOutQuad" });
-
-      [2,3,4].forEach(i => frameEntities[i].setAttribute("animation__scale_zoom", { property:"scale", to:"1.2 1.2 1.2", dur:800, easing:"easeInOutQuad" }));
-
-      camera.setAttribute("animation__cam_zoom", { property: "position", to:"0 0 0.6", dur:800, easing:"easeInOutQuad" });
-
-      const infoText = document.createElement("a-text");
-      infoText.setAttribute("value","Ecco tre opere complementari");
-      infoText.setAttribute("align","center");
-      infoText.setAttribute("color","#008000");
-      infoText.setAttribute("position","0 -0.4 0");
-      infoText.setAttribute("scale","0.2 0.2 0.2");
-      infoText.setAttribute("wrap-count","30");
-      introContainer.appendChild(infoText);
-
-      sequenceStep = 4;
-
-    } else if (sequenceStep === 4) {
-      const infoText = document.createElement("a-text");
-      infoText.setAttribute("value","Queste aggiungono varietà alla collezione");
-      infoText.setAttribute("align","center");
-      infoText.setAttribute("color","#008000");
-      infoText.setAttribute("position","0 -0.5 0");
-      infoText.setAttribute("scale","0.2 0.2 0.2");
-      infoText.setAttribute("wrap-count","30");
-      introContainer.appendChild(infoText);
-
-      sequenceStep = 5;
-
-    } else if (sequenceStep === 5) {
-      resetAllModels([2,3,4], ()=>{ sequenceStep = 6; });
-
-    } else if (sequenceStep === 6) {
-      frameEntities.forEach((ent, i)=>{ if(i!==5) ent.setAttribute("visible","false"); });
-
-      frameEntities[5].setAttribute("animation__pos_zoom", { property:"position", to:"0.3 -0.15 0.35", dur:800, easing:"easeInOutQuad" });
-      frameEntities[5].setAttribute("animation__scale_zoom", { property:"scale", to:"1.7 1.7 1.7", dur:800, easing:"easeInOutQuad" });
-
-      camera.setAttribute("animation__cam_zoom", { property:"position", to:"0 0 0.6", dur:800, easing:"easeInOutQuad" });
-
-      const infoText = document.createElement("a-text");
-      infoText.setAttribute("value","Infine, quest'ultima cornice");
-      infoText.setAttribute("align","center");
-      infoText.setAttribute("color","#008000");
-      infoText.setAttribute("position","0 -0.4 0");
-      infoText.setAttribute("scale","0.2 0.2 0.2");
-      infoText.setAttribute("wrap-count","30");
-      introContainer.appendChild(infoText);
-
-      sequenceStep = 7;
-
-    } else if (sequenceStep === 7) {
-      // Ritorno alla vista completa dopo terzo zoom
-      resetAllModels([0,1,2,3,4,5], () => { 
-        const tapText = document.getElementById("tapText");
-        if (tapText) tapText.setAttribute("visible", "false");
-
-        // --- Pop inverso finale con delay di 2 secondi ---
-        setTimeout(() => {
-          frameEntities.forEach(ent => {
-            ent.setAttribute("animation__popout", {
-              property: "scale",
-              to: "0 0 0",
-              dur: 600,
-              easing: "easeInQuad"
-            });
-          });
-
-          setTimeout(() => {
-            frameEntities.forEach(ent => ent.setAttribute("visible", "false"));
-            sequenceStep = 8; 
-            // --- Mostra finale cinema ---
-            showFinalCinema();
-          }, 600);
-        }, 2000);
-      });
-    }
   }
 });
 
